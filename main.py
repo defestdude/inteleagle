@@ -64,7 +64,7 @@ def live_person_finder():
 
     # create the window and show it without the plot
     window = sg.Window('IntelEagle',
-                       layout, keep_on_top=True, no_titlebar=True, modal=True, transparent_color=sg.theme_background_color(), resizable=True)
+                       layout, keep_on_top=True, no_titlebar=False, modal=True, transparent_color=sg.theme_background_color(), resizable=True)
 
     # ---===--- Event LOOP Read and display frames, operate the GUI --- #
     cap = cv2.VideoCapture(0)
@@ -130,7 +130,9 @@ def main():
             #cap.release()
             return
         elif event == 'Live Person Finder':
+            #window_background.disappear()
             live_person_finder()
+            #window_background.reappear()
     
 
 
