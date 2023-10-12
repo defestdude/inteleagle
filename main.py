@@ -50,26 +50,11 @@ def findFaceInFrame(input_frames, output_frames):
         output_frames.put(processedgray)
     return
 
-def main():
-
-    sg.theme('Black')
+def live_person_finder():
     input_frames = Queue()
     output_frames = Queue()
-
-    menu_def = [["Settings", ["Command 1", "Command 2"]],
-                ["Help", ["About"]]]
-    
-    intelbox_logo = sg.Image(filename='logo.png', key='intelboxlogo', subsample=3)
-    background_layout = [title_bar('This is the titlebar', sg.theme_text_color(), sg.theme_background_color()), [sg.Image(r'bg2.png')]]
-
-    window_background = sg.Window('Background', background_layout, no_titlebar=True, finalize=True, margins=(0, 0), element_padding=(0,0), right_click_menu=[[''], ['Exit',]])
-    #window_background.send_to_back()
-
-    window_background['-C-'].expand(True, False, False)  # expand the titlebar's rightmost column so that it resizes correctly
-
     # define the window layout
-    layout = [[sg.MenubarCustom(menu_def, tearoff=False)],
-              [sg.Column([[intelbox_logo]], justification='center')],
+    layout = [[sg.Text('Live Person Finder')],
               [sg.Image(filename='', key='liveimage'),  sg.Image(filename='', key='processedimage')],
               [sg.Column([[sg.Button('Start', size=(10, 1), font='Helvetica 14'),
                sg.Button('Capture', size=(10, 1), font='Any 14'),
@@ -79,16 +64,16 @@ def main():
 
     # create the window and show it without the plot
     window = sg.Window('IntelEagle',
-                       layout, keep_on_top=True, no_titlebar=True, transparent_color=sg.theme_background_color(), resizable=True)
+                       layout, keep_on_top=True, no_titlebar=True, modal=True, transparent_color=sg.theme_background_color(), resizable=True)
 
     # ---===--- Event LOOP Read and display frames, operate the GUI --- #
     cap = cv2.VideoCapture(0)
     recording = False
-
     while True:
         event, values = window.read(timeout=20)
         if event == 'Exit' or event == sg.WIN_CLOSED:
             cap.release()
+            window.close()
             return
 
         elif event == 'Start':
@@ -118,6 +103,34 @@ def main():
             window['liveimage'].update(data=imgbytes)
             findFaceInFrame(input_frames, output_frames)
             window['processedimage'].update(data=output_frames.get())
+        
+    window.close()
+
+
+def main():
+
+    sg.theme('Black')
+    intelbox_logo = sg.Image(filename='logo.png', key='intelboxlogo', subsample=3)
+    menu_def = [["File", ["Live Person Finder", "Command 2"]],
+                ["Help", ["About"]]]
+    
+    
+    background_layout = [[sg.MenubarCustom(menu_def, tearoff=False)],
+                        
+                         [sg.Column([[intelbox_logo]], justification='center')],
+                         [sg.Image(r'bg2.png')]]
+
+    window_background = sg.Window('Background', background_layout, no_titlebar=False, resizable=True, finalize=True, margins=(0, 0), element_padding=(0,0))
+    #window_background.send_to_back()
+
+    
+    while True:
+        event, values = window_background.read(timeout=20)
+        if event == 'Exit' or event == sg.WIN_CLOSED:
+            #cap.release()
+            return
+        elif event == 'Live Person Finder':
+            live_person_finder()
     
 
 
