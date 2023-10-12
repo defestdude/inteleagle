@@ -74,7 +74,7 @@ def live_person_finder():
         if event == 'Exit' or event == sg.WIN_CLOSED:
             cap.release()
             window.close()
-            return
+            break
 
         elif event == 'Start':
             recording = True
