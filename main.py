@@ -5,12 +5,16 @@ import numpy as np
 from multiprocessing import Lock, Queue
 from datetime import datetime
 import imutils
+from pathlib import Path
+import face_recognition
+from collections import Counter
+import pickle
 
 
 """
 IntelEaghe
 """
-
+DEFAULT_ENCODINGS_PATH = Path("output/encodings.pkl")
 def title_bar(title, text_color, background_color):
     """
     Creates a "row" that can be added to a layout. This row looks like a titlebar
@@ -31,7 +35,44 @@ def title_bar(title, text_color, background_color):
             sg.Col([[sg.T('_', text_color=tc, background_color=bc, enable_events=True, font=font, key='-MINIMIZE-'), sg.Text('❎', text_color=tc, background_color=bc, font=font, enable_events=True, key='Exit')]], element_justification='r', key='-C-', grab=True,
                    pad=(0, 0), background_color=bc)]
 
+def recognize_faces(
+    image_location: np.ndarray,
+    model: str = "hog",
+    encodings_location: Path = DEFAULT_ENCODINGS_PATH,
+) -> None:
+    with encodings_location.open(mode="rb") as f:
+        loaded_encodings = pickle.load(f)
 
+    #input_image = face_recognition.load_image_file(image_location)
+    input_image = image_location
+    input_face_locations = face_recognition.face_locations(
+        input_image, model=model
+    )
+    input_face_encodings = face_recognition.face_encodings(
+        input_image, input_face_locations
+    )
+
+    for bounding_box, unknown_encoding in zip(
+        input_face_locations, input_face_encodings
+    ):
+        name = _recognize_face(unknown_encoding, loaded_encodings)
+        if not name:
+            name = "Unknown"
+        return name
+        #print(name, bounding_box)
+
+def _recognize_face(unknown_encoding, loaded_encodings):
+    boolean_matches = face_recognition.compare_faces(
+        loaded_encodings["encodings"], unknown_encoding
+    )
+    votes = Counter(
+        name
+        for match, name in zip(boolean_matches, loaded_encodings["names"])
+        if match
+    )
+    if votes:
+        return votes.most_common(1)[0][0]
+    
 def findFaceInFrame(input_frames, output_frames):
     try:
         frame = input_frames.get_nowait()
@@ -41,12 +82,14 @@ def findFaceInFrame(input_frames, output_frames):
         #return True
     else:
         face_cascade = cv2.CascadeClassifier('faceclassifier.xml')
+        detected_name = recognize_faces(frame)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) 
         faces = face_cascade.detectMultiScale(gray, 1.1, 4)
             # Draw the rectangle around each face
         for (x, y, w, h) in faces:
-            cv2.rectangle(gray, (x, y), (x+w, y+h), (255, 0, 0), 2)
-        processedgray = cv2.imencode('.png', gray)[1].tobytes()
+            cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
+            cv2.putText(frame, detected_name, (x, y - 5),cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,100), 2)
+        processedgray = cv2.imencode('.png', frame)[1].tobytes()
         output_frames.put(processedgray)
     return
 
