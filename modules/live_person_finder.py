@@ -57,7 +57,7 @@ def findFaceInFrame(input_frames, output_frames):
         print('queue is empty')
         #return True
     else:
-        face_cascade = cv2.CascadeClassifier('faceclassifier.xml')
+        face_cascade = cv2.CascadeClassifier('classifiers/faceclassifier.xml')
         detected_name = recognize_faces(frame)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) 
         faces = face_cascade.detectMultiScale(gray, 1.1, 4)
