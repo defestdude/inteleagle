@@ -3,6 +3,7 @@ import PySimpleGUI as sg
 from pathlib import Path
 
 from modules.live_person_finder import live_person_finder
+from modules.model_trainer import encode_known_faces
 
 
 """
@@ -34,14 +35,15 @@ def main():
 
     sg.theme('Black')
     intelbox_logo = sg.Image(filename='logo.png', key='intelboxlogo', subsample=3)
-    menu_def = [["File", ["Live Person Finder", "Command 2"]],
+    menu_def = [["File", ["Live Person Finder", "Train Model"]],
                 ["Help", ["About"]]]
     
     
     background_layout = [[sg.MenubarCustom(menu_def, tearoff=False)],
                         
                          [sg.Column([[intelbox_logo]], justification='center')],
-                         [sg.Image(r'bg2.png')]]
+                         [sg.Image(r'images/bg2.png')],
+                         [sg.Text('Bottom ', key='statusbar', text_color='white')]]
 
     window_background = sg.Window('Background', background_layout, no_titlebar=False, resizable=True, finalize=True, margins=(0, 0), element_padding=(0,0))
     #window_background.send_to_back()
@@ -53,9 +55,12 @@ def main():
             #cap.release()
             return
         elif event == 'Live Person Finder':
-            #window_background.disappear()
             live_person_finder()
-            #window_background.reappear()
+        elif event == 'Train Model':
+            sg.popup_quick_message('Training the model, please wait...', background_color='green', text_color='white', font='_ 20')
+            encode_known_faces()
+            window_background['statusbar'].update("Training Complete")
+
     
 
 
