@@ -103,7 +103,7 @@ def live_person_finder():
             img = np.full((20, 20), 0)
             # this is faster, shorter and needs less includes
             imgbytes = cv2.imencode('.png', img)[1].tobytes()
-            window['liveimage'].update(data=imgbytes)
+            #window['liveimage'].update(data=imgbytes)
             window['processedimage'].update(data=imgbytes)
 
         if recording:
